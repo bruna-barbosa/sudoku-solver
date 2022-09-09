@@ -7,8 +7,10 @@ from numpy import random
 
 def fps(population):
     """Fitness proportionate selection implementation.
+
     Args:
         population (Population): The population we want to select from.
+
     Returns:
         Individual: selected individual.
     """
@@ -39,8 +41,10 @@ def fps(population):
 
 def ranking(population):
     """Ranking selection implementation.
+
     Args:
         population (Population): The population we want to select from.
+
     Returns:
         Individual: selected individual.
     """
@@ -59,9 +63,11 @@ def ranking(population):
 
 def tournament(population, size=10):
     """Tournament selection implementation.
+
     Args:
         population (Population): The population we want to select from.
         size (int): Size of the tournament.
+
     Returns:
         Individual: Best individual in the tournament.
     """
@@ -75,3 +81,4 @@ def tournament(population, size=10):
         return min(tournament, key=attrgetter("fitness"))
     else:
         raise Exception("No optimization specified (min or max).")
+

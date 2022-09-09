@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 def plot_c(c, alpha, threshold):
     """ A function to visualize the changing c value (vertical) and
     number of updates (horizontal)
+
     Args:
         c: temperature parameter
         alpha: decreasing factor

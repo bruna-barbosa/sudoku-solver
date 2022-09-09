@@ -1,106 +1,133 @@
-from random import randint, sample
+from random import choice, uniform
+from math import exp
 
 
-def single_point_co(p1, p2):
-    """Implementation of single point crossover.
+def hill_climb(search_space, log=0):
+    """Hill climbs a given search space.
+
     Args:
-        p1 (Individual): First parent for crossover.
-        p2 (Individual): Second parent for crossover.
+        search_space (Population): A Population of solutions
+        log (int, optional): Prints info while running if set to 1. Defaults to 0.
+
+    Raises:
+        Exception: When unsure if facing maximization or minimization problem.
+
     Returns:
-        Individuals: Two offsprings, resulting from the crossover.
+        Individual: Local optima Individual found in the search.
     """
-    co_point = randint(1, len(p1)-2)
+    # Select a random solution
+    start = choice(search_space)
+    position = start
+    # Counter to ensure we don't loop
+    # infinitely if stuck in a plateau of optimas
+    iter_plateau = 0
 
-    offspring1 = p1[:co_point] + p2[co_point:]
-    offspring2 = p2[:co_point] + p1[co_point:]
+    if log == 1:
+        print(f"Initial position: {start}")
 
-    return offspring1, offspring2
+    while True:
+        # Return solution if we found same fitness
+        # 5 times - to avoid infinite loop
+        if iter_plateau >= 5:
+            print(f"Best solution found: {position}")
+            return position
 
+        n = position.get_neighbours()
+        n_fit = [i.fitness for i in n]
 
-def multi_point_co(p1, p2):
-    """Implementation of single point crossover.
-    Args:
-        p1 (Individual): First parent for crossover.
-        p2 (Individual): Second parent for crossover.
-    Returns:
-        Individuals: Two offsprings, resulting from the crossover.
-    """
+        if search_space.optim == "max":
+            best_n = n[n_fit.index(max(n_fit))]
+            if best_n.fitness > position.fitness:
+                if log == 1:
+                    print(f"Found better solution: {best_n}")
+                iter_plateau = 0
+                position = best_n
+            elif best_n.fitness == position.fitness:
+                if log == 1:
+                    print(f"Found better solution: {best_n}")
+                iter_plateau += 1
+                position = best_n
+            else:
+                print(f"Best solution found: {position}")
+                return position
 
-    co_points = sample(range(1, len(p1)-2), 2)
-    co_points.sort()
+        elif search_space.optim == "min":
+            best_n = n[n_fit.index(min(n_fit))]
+            if best_n.fitness < position.fitness:
+                if log == 1:
+                    print(f"Found better solution: {best_n}")
+                iter_plateau = 0
+                position = best_n
+            elif best_n.fitness == position.fitness:
+                if log == 1:
+                    print(f"Found better solution: {best_n}")
+                iter_plateau += 1
+                position = best_n
+            else:
+                print(f"Best solution found: {position}")
+                return position
 
-    offspring1 = p1[:co_points[0]] + p2[co_points[0]:co_points[1]] + p1[co_points[1]:]
-    offspring2 = p2[:co_points[0]] + p1[co_points[0]:co_points[1]] + p2[co_points[1]:]
-
-    return offspring1, offspring2
-
-
-def cycle_co(p1, p2):
-    """Implementation of cycle crossover.
-    Args:
-        p1 (Individual): First parent for crossover.
-        p2 (Individual): Second parent for crossover.
-    Returns:
-        Individuals: Two offsprings, resulting from the crossover.
-    """
-
-    # Offspring placeholders - None values make it easy to debug for errors
-    offspring1 = [None] * len(p1)
-    offspring2 = [None] * len(p2)
-    # While there are still None values in offspring, get the first index of
-    # None and start a "cycle" according to the cycle crossover method
-    while None in offspring1:
-        index = offspring1.index(None)
-
-        val1 = p1[index]
-        val2 = p2[index]
-
-        while val1 != val2:
-            offspring1[index] = p1[index]
-            offspring2[index] = p2[index]
-            val2 = p2[index]
-            index = p1.index(val2)
-
-        for element in offspring1:
-            if element is None:
-                index = offspring1.index(None)
-                if offspring1[index] is None:
-                    offspring1[index] = p2[index]
-                    offspring2[index] = p1[index]
-
-    return offspring1, offspring2
-
-
-def uniform_co(p1, p2):
-    """Implementation of cycle crossover.
-    Args:
-        p1 (Individual): First parent for crossover.
-        p2 (Individual): Second parent for crossover.
-    Returns:
-        Individuals: Two offsprings, resulting from the crossover.
-    """
-
-    if len(p1) != len(p2):
-        raise Exception("Parents' lengths are not equal.")
-
-    length = len(p1)
-
-    # Offspring placeholders - None values make it easy to debug for errors
-    offspring1 = [None] * length
-    offspring2 = [None] * length
-    # While there are still None values in offspring, get the first index of
-    # None and start a "cycle" according to the cycle crossover method
-    for index in range(length):
-        if randint(0, 1) == 0:
-            offspring1[index] = p1[index]
-            offspring2[index] = p2[index]
         else:
-            offspring1[index] = p2[index]
-            offspring2[index] = p1[index]
-
-    return offspring1, offspring2
+            raise Exception("Problem doesn't specify if minimization or maximization.")
 
 
-if __name__ == '__main__':
-    p1, p2 = [2, 7, 4, 3, 1, 5, 6, 9, 8], [1, 2, 3, 4, 5, 6, 7, 8, 9]
-    o1, o2 = cycle_co(p1, p2)
+def sim_annealing(search_space, L=20, c=10, alpha=0.95):
+    """Simulated annealing implementation.
+
+    Args:
+        search_space (Population): a Population object to search through.
+        L (int, optional): Internal loop parameter. Defaults to 20.
+        c (int, optional): Temperature parameter. Defaults to 10.
+        alpha (float, optional): Alpha to decrease the temperature. Defaults to 0.95.
+
+    Returns:
+        Individual: an Individual object - the best found by SA.
+    """
+    # Initialize solution from search space (randomly)
+    position = choice(search_space)
+
+    elite = position
+
+    # While loop until termination condition
+    while c > 0.05:
+        # Repeat L times
+        for _ in range(L):
+            # Generate neighbour
+            sol = choice(position.get_neighbours())
+
+            if search_space.optim == "max":
+                # if new sol is better or equal - take it
+                if sol.fitness >= position.fitness:
+                    position = sol
+
+                    if position.fitness >= elite.fitness:
+                        elite = position
+
+                # else, if solution is worse take it based on P
+                else:
+                    p = uniform(0, 1)
+                    pc = exp(-abs(sol.fitness - position.fitness) / c)
+                    if p < pc:
+                        position = sol
+
+            elif search_space.optim == "min":
+                # if new sol is better or equal - take it
+                if sol.fitness <= position.fitness:
+                    position = sol
+
+                    if position.fitness <= elite.fitness:
+                        elite = position
+
+                # else, if solution is worse take it based on P
+                else:
+                    p = uniform(0, 1)
+                    pc = exp(-abs(sol.fitness - position.fitness) / c)
+                    if p < pc:
+                        position = sol
+
+        # Update c
+        c = c * alpha
+    # return solution with best fitness
+    print(f"Sim returned: {position}")
+    print(f"Best solution found: {elite}")
+    return position

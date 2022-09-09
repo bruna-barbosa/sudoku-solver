@@ -3,9 +3,11 @@ from random import randint, sample
 
 def single_point_co(p1, p2):
     """Implementation of single point crossover.
+
     Args:
         p1 (Individual): First parent for crossover.
         p2 (Individual): Second parent for crossover.
+
     Returns:
         Individuals: Two offsprings, resulting from the crossover.
     """
@@ -19,9 +21,11 @@ def single_point_co(p1, p2):
 
 def multi_point_co(p1, p2):
     """Implementation of single point crossover.
+
     Args:
         p1 (Individual): First parent for crossover.
         p2 (Individual): Second parent for crossover.
+
     Returns:
         Individuals: Two offsprings, resulting from the crossover.
     """
@@ -37,9 +41,11 @@ def multi_point_co(p1, p2):
 
 def cycle_co(p1, p2):
     """Implementation of cycle crossover.
+
     Args:
         p1 (Individual): First parent for crossover.
         p2 (Individual): Second parent for crossover.
+
     Returns:
         Individuals: Two offsprings, resulting from the crossover.
     """
@@ -73,9 +79,11 @@ def cycle_co(p1, p2):
 
 def uniform_co(p1, p2):
     """Implementation of cycle crossover.
+
     Args:
         p1 (Individual): First parent for crossover.
         p2 (Individual): Second parent for crossover.
+
     Returns:
         Individuals: Two offsprings, resulting from the crossover.
     """

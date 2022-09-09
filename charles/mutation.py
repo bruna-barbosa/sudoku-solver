@@ -1,106 +1,76 @@
-from random import randint, sample
+from random import choice, sample, shuffle
 
 
-def single_point_co(p1, p2):
-    """Implementation of single point crossover.
+def random_resetting(individual, mutable_indexes, valid_set):
+    """Replace mutation for a GA individual
+
     Args:
-        p1 (Individual): First parent for crossover.
-        p2 (Individual): Second parent for crossover.
+        individual (Individual): A GA individual from charles.py
+
     Returns:
-        Individuals: Two offsprings, resulting from the crossover.
+        Individual: Mutated Individual
     """
-    co_point = randint(1, len(p1)-2)
+    # Get a mutation point
+    mut_point = choice(mutable_indexes)
+    # Mutate it
+    individual[mut_point] = choice(valid_set)
+    return individual
 
-    offspring1 = p1[:co_point] + p2[co_point:]
-    offspring2 = p2[:co_point] + p1[co_point:]
 
-    return offspring1, offspring2
+def swap(individual, mutable_indexes, valid_set):
+    """Swap mutation for a GA individual
 
-
-def multi_point_co(p1, p2):
-    """Implementation of single point crossover.
     Args:
-        p1 (Individual): First parent for crossover.
-        p2 (Individual): Second parent for crossover.
+        individual (Individual): A GA individual from charles.py
+
     Returns:
-        Individuals: Two offsprings, resulting from the crossover.
+        Individual: Mutated Individual
     """
+    # Get two mutation points
+    mut_points = sample(mutable_indexes, 2)
+    # Swap them
+    individual[mut_points[0]], individual[mut_points[1]] = individual[mut_points[1]], individual[mut_points[0]]
 
-    co_points = sample(range(1, len(p1)-2), 2)
-    co_points.sort()
-
-    offspring1 = p1[:co_points[0]] + p2[co_points[0]:co_points[1]] + p1[co_points[1]:]
-    offspring2 = p2[:co_points[0]] + p1[co_points[0]:co_points[1]] + p2[co_points[1]:]
-
-    return offspring1, offspring2
+    return individual
 
 
-def cycle_co(p1, p2):
-    """Implementation of cycle crossover.
+def scramble(individual, mutable_indexes, valid_set):
+    """Scramble mutation for a GA individual
+
     Args:
-        p1 (Individual): First parent for crossover.
-        p2 (Individual): Second parent for crossover.
+        individual (Individual): A GA individual from charles.py
+
     Returns:
-        Individuals: Two offsprings, resulting from the crossover.
+        Individual: Mutated Individual
     """
+    # Get a few mutation points
+    mut_points = sample(mutable_indexes, int(len(mutable_indexes)/2))
+    mut_points.sort()
+    values = [individual[point] for point in mut_points]
+    shuffle(values)
+    # Assign shuffled values
+    for idx, point in enumerate(mut_points):
+        individual[point] = values[idx]
 
-    # Offspring placeholders - None values make it easy to debug for errors
-    offspring1 = [None] * len(p1)
-    offspring2 = [None] * len(p2)
-    # While there are still None values in offspring, get the first index of
-    # None and start a "cycle" according to the cycle crossover method
-    while None in offspring1:
-        index = offspring1.index(None)
-
-        val1 = p1[index]
-        val2 = p2[index]
-
-        while val1 != val2:
-            offspring1[index] = p1[index]
-            offspring2[index] = p2[index]
-            val2 = p2[index]
-            index = p1.index(val2)
-
-        for element in offspring1:
-            if element is None:
-                index = offspring1.index(None)
-                if offspring1[index] is None:
-                    offspring1[index] = p2[index]
-                    offspring2[index] = p1[index]
-
-    return offspring1, offspring2
+    return individual
 
 
-def uniform_co(p1, p2):
-    """Implementation of cycle crossover.
+def inversion(individual, mutable_indexes, valid_set):
+    """Inversion mutation for a GA individual
+
     Args:
-        p1 (Individual): First parent for crossover.
-        p2 (Individual): Second parent for crossover.
+        individual (Individual): A GA individual from charles.py
+
     Returns:
-        Individuals: Two offsprings, resulting from the crossover.
+        Individual: Mutated Individual
     """
+    # Get a few mutation points
+    mut_points = sample(mutable_indexes, int(len(mutable_indexes)/2))
+    mut_points.sort()
+    values = [individual[point] for point in mut_points]
+    values.reverse()
+    # Reverse values of mutation points
+    for idx, point in enumerate(mut_points):
+        individual[point] = values[idx]
 
-    if len(p1) != len(p2):
-        raise Exception("Parents' lengths are not equal.")
-
-    length = len(p1)
-
-    # Offspring placeholders - None values make it easy to debug for errors
-    offspring1 = [None] * length
-    offspring2 = [None] * length
-    # While there are still None values in offspring, get the first index of
-    # None and start a "cycle" according to the cycle crossover method
-    for index in range(length):
-        if randint(0, 1) == 0:
-            offspring1[index] = p1[index]
-            offspring2[index] = p2[index]
-        else:
-            offspring1[index] = p2[index]
-            offspring2[index] = p1[index]
-
-    return offspring1, offspring2
-
-
-if __name__ == '__main__':
-    p1, p2 = [2, 7, 4, 3, 1, 5, 6, 9, 8], [1, 2, 3, 4, 5, 6, 7, 8, 9]
-    o1, o2 = cycle_co(p1, p2)
+    return individual

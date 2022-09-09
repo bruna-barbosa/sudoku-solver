@@ -11,6 +11,7 @@ from numpy import std
 def get_fitness(self):
     """A fitness function for the Sudoku Problem.
     Calculates the fitness of rows, columns and blocks in terms of repetition and sum
+
     Returns:
         int: the closer to 0 the better
     """
@@ -45,6 +46,7 @@ def get_fitness(self):
 
 def get_neighbours(self):
     """A neighbourhood function for the Sudoku Problem.
+
     Returns:
         list: a list of individuals
     """
